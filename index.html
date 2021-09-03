@@ -9,12 +9,26 @@
     <title>Bonus</title>
 </head>
 <body>
+    
     <h1 class="title">Выберите фильм</h1>
-    <select name="" id="movies__select">
-        <option value="None">None</option>
-        <option value="All">All</option>
-    </select>
-
+    <form class="filter__form">
+        <select name="" id="movies__select">
+            <option value="All">All</option>
+        </select>
+        <select name="" id="gender__select">
+            <option value="None">None</option>
+        </select>
+        <select name="" id="status__select">
+            <option value="None">None</option>  
+        </select>
+        <button class="filter__btn"></button>
+    </form>
+    <div class="preloader">
+        <div class="preloader__row">
+            <div class="preloader__item"></div>
+            <div class="preloader__item"></div>
+        </div>
+    </div>
     <div class="cards">
         <div class="cards__container">
         </div>

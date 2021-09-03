@@ -1,14 +1,19 @@
 document.addEventListener('DOMContentLoaded', async () => {
     "use strict";
     const moviesSelect = document.getElementById('movies__select'),
+        genderSelect = document.getElementById('gender__select'),
+        statusSelect = document.getElementById('status__select'),
+        filterForm = document.getElementById('filter__form'),
         cardsContainer = document.querySelector('.cards__container');
+
     const getData = async () => {
+        document.body.classList.remove('loaded'); //добавляем прелоад(если бы запрос долго обрабатывался)
         const response = await fetch('./dbHeroes.json');
+        document.body.classList.add('loaded'); //убираем прелоад после загрузки
         if (!response.ok) {
             throw new Error('Ошибка при получении данных с сервера');
         } else {
-            const data = await response.json();
-            return data;
+            return await response.json();
         }
     };
 
@@ -92,14 +97,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     //Вешаем событие изменения выпадающего списка
     moviesSelect.addEventListener('change', async (e) => {
-        if (moviesSelect.value === 'None') { //Если выбран none - ничего не отображаем
-            cardsContainer.textContent = '';
-        } else {
-            const data = await getData(); //получаем данные с сервера
-            const filteredData = filterData(data); //фильтруем данные
-            cardsContainer.textContent = ''; //стираем все, что было до этого
-            createCards(filteredData); //вставляем новые данные
-        }
+        const data = await getData(); //получаем данные с сервера каждый раз(на случай, если данные изменили за время последнего запроса(если бы они были нестатичны))
+        const filteredData = filterData(data); //фильтруем данные
+        cardsContainer.textContent = ''; //стираем все, что было до этого
+        createCards(filteredData); //вставляем новые данные
     });
     //Возможность щелкать по фильмам в карте персанажа и переходить на них
     cardsContainer.addEventListener('click', e => {
