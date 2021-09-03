@@ -38,7 +38,7 @@ body {
   background: url("./bg.jpg") center/100% repeat;
   padding: 40px; }
 
-#movies__select {
+.filter__select {
   color: #fff;
   padding: 10px 20px;
   margin-bottom: 30px;
@@ -46,7 +46,18 @@ body {
   font-weight: 700;
   background-color: rgba(0, 0, 0, 0.8);
   border: 2px solid #fff;
-  border-radius: 14px; }
+  border-radius: 14px;
+  margin-right: 30px; }
+.filter__btn {
+  color: #000;
+  padding: 10px 20px;
+  margin-bottom: 30px;
+  font-size: 20px;
+  font-weight: 700;
+  background-color: rgba(255, 255, 255, 0.8);
+  border: 2px solid #000;
+  border-radius: 14px;
+  text-transform: uppercase; }
 
 .title {
   font-size: 30px;
