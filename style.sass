@@ -93,6 +93,8 @@ body
                 span
                     font-weight: 700
                     font-size: 16px
+        // &_movies
+        //     margin-bottom: 20px
         &_movie
             position: relative
             padding-left: 20px
@@ -160,3 +162,32 @@ body
         transform: scale(1)
 .loaded .preloader
     display: none
+
+.popup
+    position: fixed
+    top: 0
+    left: 0
+    height: 100%
+    width: 100%
+    background-color: #000
+    opacity: 0.8
+
+    z-index: 1002
+    &2
+        display: none
+    &__header
+        margin-bottom: 50px
+    &__checkboxes
+        display: flex
+        flex-direction: column
+        align-items: center
+        margin-bottom: 30px
+        font-size: 18px
+        div
+            margin-bottom: 20px
+    &__wrapper
+        height: 100%
+        display: flex
+        flex-direction: column
+        align-items: center
+        justify-content: center

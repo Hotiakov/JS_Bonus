@@ -9,19 +9,8 @@
     <title>Bonus</title>
 </head>
 <body>
-    
     <h1 class="title">Choose movies</h1>
     <form class="filter__form">
-        <select class="filter__select" name="" id="movies__select">
-            <option value="All">Movies(All)</option>
-        </select>
-        <select class="filter__select" name="" id="gender__select">
-            <option value="All">Gender(All)</option>
-        </select>
-        <select class="filter__select" name="" id="status__select">
-            <option value="All">Status(All)</option>
-        </select>
-
         <button type="submit" class="filter__btn btn">Фильтр</button>
         <button type="submit" class="reset__btn btn">Сброс</button>
     </form>
@@ -35,6 +24,50 @@
         <div class="cards__container">
         </div>
     </div>
+
+    <div class="popup popup1">
+        <div class="popup__wrapper">
+            <h2 class="popup__header">
+                Поставьте галочку напротив фильтров, которые Вы бы хотели видеть:
+            </h2>
+            <form class="popup__form">
+                <div class="popup__checkboxes">
+                    <div><input type="checkbox" id="b1" value="movies" checked> <label for="b1">Movies</label></div>
+                    <div><input type="checkbox" id="b2" value="status"> <label for="b2">Status</label></div>
+                    <div><input type="checkbox" id="b3" value="species"> <label for="b3">Species</label></div>
+                    <div><input type="checkbox" id="b4" value="gender"> <label for="b4">Gender</label></div>
+                    <div><input type="checkbox" id="b5" value="citizenship"> <label for="b5">Citizenship</label></div>
+                    <div><input type="checkbox" id="b6" value="birthDay"> <label for="b6">Birthday</label></div>
+                    <div><input type="checkbox" id="b7" value="name"> <label for="b7">Name</label></div>
+                    <div><input type="checkbox" id="b8" value="realName"> <label for="b8">Real name</label></div>
+                    <div><input type="checkbox" id="b9" value="actors"> <label for="b9">Actors</label></div>
+                </div>
+                <button class="chooseFilter_btn btn">Установить фильтры</button>
+            </form>
+        </div>
+    </div>
+    <div class="popup popup2">
+        <div class="popup__wrapper">
+            <h2 class="popup__header">
+                Поставьте галочку напротив данных персонажей, которые Вы бы хотели видеть:
+            </h2>
+            <form class="popup__form">
+                <div class="popup__checkboxes">
+                    <div><input type="checkbox" id="cb7" value="name" checked> <label for="cb7">Name</label></div>
+                    <div><input type="checkbox" id="cb8" value="realName" checked> <label for="cb8">Real name</label></div>
+                    <div><input type="checkbox" id="cb2" value="status" checked> <label for="cb2">Status</label></div>
+                    <div><input type="checkbox" id="cb3" value="species"> <label for="cb3">Species</label></div>
+                    <div><input type="checkbox" id="cb4" value="gender"> <label for="cb4">Gender</label></div>
+                    <div><input type="checkbox" id="cb5" value="citizenship"> <label for="cb5">Citizenship</label></div>
+                    <div><input type="checkbox" id="cb6" value="birthDay"> <label for="cb6">Birthday</label></div>
+                    <div><input type="checkbox" id="cb9" value="actors"> <label for="cb9">Actors</label></div>
+                    <div><input type="checkbox" id="cb1" value="movies" checked> <label for="cb1">Movies</label></div>
+                </div>
+                <button class="chooseFilter_btn btn">Установить отображаемые данные</button>
+            </form>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>

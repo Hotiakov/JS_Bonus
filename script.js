@@ -1,10 +1,44 @@
 document.addEventListener('DOMContentLoaded', async () => {
     "use strict";
-    const moviesSelect = document.getElementById('movies__select'),
-        genderSelect = document.getElementById('gender__select'),
-        statusSelect = document.getElementById('status__select'),
-        filterForm = document.querySelector('.filter__form'),
-        cardsContainer = document.querySelector('.cards__container');
+    const filterForm = document.querySelector('.filter__form'),
+        cardsContainer = document.querySelector('.cards__container'),
+        popupFilter = document.querySelector('.popup1'),
+        popupData = document.querySelector('.popup2');
+    const filterArray = [];
+    const metaDataValues = {} //создано для удобства добавления новых фильтров
+    const metaDataField = { //список данных, которые буду отображаться в карте персонажа
+        photo: ['photo', photo => photo ? photo : 'dbimage/unknown.jpg'],
+    };
+
+    popupFilter.addEventListener('submit', e => { //форма выбора фильтров
+        e.preventDefault();
+        popupFilter.style.display = 'none';
+        popupData.style.display = 'block';
+        const inputs = popupFilter.querySelectorAll('input');
+        console.log(inputs);
+        inputs.forEach(item => {
+            if (item.checked) {
+                filterArray.push(item.value);
+            }
+        });
+    });
+    popupData.addEventListener('submit', e => { //форма выбора данных для отображения
+        e.preventDefault();
+        popupData.style.display = 'none';
+        const inputs = popupData.querySelectorAll('input');
+        inputs.forEach(item => {
+            if (item.checked) {
+                if (item.value === 'movies') {
+                    metaDataField[item.value] = ['movies', a => a ? a : ['None']];
+                }
+                else {
+                    metaDataField[item.value] = [item.value, a => a ? a : "unknown"];
+                }
+            }
+        });
+        console.log(metaDataField);
+        init();
+    });
 
     const getData = async () => {
         document.body.classList.remove('loaded'); //добавляем прелоад(если бы запрос долго обрабатывался)
@@ -17,33 +51,42 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-    const createOptions = async (filters) => { //функция создания selectы со всеми фильмами/статусами/гендерами.
-        // Создана на случай, если в json добавился бы новый фильм/статус/гендер(другое написание, неизвестный пол и тп)
-        let optionsMovie = new Set(),
-            optionsGender = new Set(),
-            optionsStatus = new Set();
+    const createOptions = async options => { //функция создания selectы со всеми переданными фильтрами.
+        const optionsObj = {};
+        options.forEach(item => optionsObj[item] = new Set()); //создаем обект, у которого ключи - названия фильтров, а значение - Set со всеми опциями фильтров. 
         const data = await getData();
         data.forEach(element => {
-            if (element["movies"])
-                element["movies"].forEach((item) => {
-                    optionsMovie.add(item.trim());
-                });
-            if (element["status"])
-                optionsStatus.add(element["status"].trim());
-            if (element["gender"])
-                optionsGender.add(element["gender"].trim());
+            for (let key in optionsObj) {
+                if (!element[key]) continue;
+                if (key === 'movies') {
+                    element[key].forEach((item) => {
+                        optionsObj[key].add(item.trim());
+                    });
+                }
+                else {
+                    optionsObj[key].add(element[key].trim());
+                }
+            }
         });
-        optionsMovie = [...optionsMovie].sort(); //сортируем фильмы в алфавитном порядке(для красоты и удобства)
-        const insertOption = (options, select) => {
+        if ('movies' in optionsObj) optionsObj['movies'] = [...optionsObj['movies']].sort(); //сортируем фильмы в алфавитном порядке(для красоты и удобства)
+        const createSelects = () => { //создаем селекты для всех фильтров
+            let select;
+            const insertOption = (options, select) => {
+                options.forEach((item) => {
+                    select.insertAdjacentHTML('beforeend', `<option value='${item}'>${item}</option>`);
+                });
+            }
             options.forEach((item) => {
-                select.insertAdjacentHTML('beforeend', `<option value='${item}'>${item}</option>`);
-            });
-        }
-        insertOption(optionsMovie, moviesSelect)
-        insertOption(optionsStatus, statusSelect)
-        insertOption(optionsGender, genderSelect)
+                select = document.createElement('select');
+                select.className = "filter__select";
+                select.insertAdjacentHTML('beforeend', `<option value="All">${item[0].toUpperCase() + item.slice(1).toLowerCase()}(All)</option>`);
+                filterForm.prepend(select);
+                metaDataValues[item] = select;//привязываем к полю фильтра его select
+                insertOption(optionsObj[item], select); //встявляем найденные опции в созданные select
+            })
+        };
+        createSelects();
     };
-    createOptions();
 
     const filterMeta = (meta) => {//функция получения фильтра по мета-данным
         const keys = Object.keys(meta);
@@ -57,21 +100,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             return newObj;
         }
     };
-    const filterData = (data) => { //функция фильтра данных, полученных с сервара
-        const metaDataField = { //список данных, по которым производится фильтр
-            name: ['name', name => name ? name : 'unknown'], //если каких-то данных нет, меняем их на "неизвестного"
-            photo: ['photo', photo => photo ? photo : 'dbimage/unknown.jpg'],
-            status: ['status', status => status ? status : 'unknown'],
-            realName: ['realName', realName => realName ? realName : 'unknown'],
-            movies: ['movies', movies => movies ? movies : ['None']],
-        };
-        const metaDataValues = { //создано для удобства добавления новых фильтров
-            //по сути если добавится другой select, его нужно будет только добавить сюда
-            "movies": moviesSelect.value,
-            "gender": genderSelect.value,
-            "status": statusSelect.value
-        }
-
+    const filterData = (data, filters) => { //функция фильтра данных, полученных с сервара
         const filter = data => {
             const keys = Object.keys(metaDataValues); //названия фильтров
             let flag = true;
@@ -79,7 +108,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             data = data.reduce((newData, item) => { //проходимся по всем элементам данных и создает массив с отфильтрованным персонажами
                 for (let i = 0; i < keys.length; i++) {//каждый элемент проверяем по фильтрам
                     filterDataValue = item[keys[i]];
-                    filterMetaValue = metaDataValues[keys[i]];
+                    filterMetaValue = metaDataValues[keys[i]].value; //получаем значение фильтра из select
                     if (filterMetaValue !== "All") { //если значение фильтра ALL - пропускаем его
                         if (!filterDataValue) {//если у персонажа нет нужного поля - он не попадает под фильтр
                             flag = false;
@@ -120,48 +149,68 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const createCards = (data) => { //функция создания карточки героя
         data.forEach(item => {
-            cardsContainer.insertAdjacentHTML('beforeend', `
-                <div class="cards__item" style="background: url('./${item['photo']}') top/cover no-repeat">
-                    <div class="cards__item-wrapper">
-                        <p class="cards__item_name"><span>Name:</span> ${item['name']}</p>
-                        <p class="cards__item_realname"><span>RealName:</span> ${item['realName']}</p>
-                        <p class="cards__item_status"><span>Status:</span> ${item['status']}</p>
+
+            const itemNode = document.createElement('div');
+            itemNode.className = 'cards__item';
+            itemNode.style.background = `url('./${item['photo']}') top/cover no-repeat`;
+            itemNode.insertAdjacentHTML('beforeend', `<div class="cards__item-wrapper"></div>`);
+            const wrapper = itemNode.querySelector('.cards__item-wrapper');
+            for (let key in metaDataField) {
+                if (key === 'photo') continue;
+                if (key !== 'movies')
+                    wrapper.insertAdjacentHTML('beforeend', `
+                            <p><span>${key[0].toUpperCase() + key.slice(1).toLowerCase()}:</span> ${item[key]}</p>
+                    `);
+                else {
+                    wrapper.insertAdjacentHTML('beforeend', `
                         <p><span>Movies:</span></p>
                         <ul class="cards__item_movies">
                         </ul>
-                    </div>
-                </div>`);
-            const movie = cardsContainer.lastChild.querySelector('.cards__item_movies');
-            item['movies'].forEach(element => {
-                movie.insertAdjacentHTML('beforeend', `
-                        <li class="cards__item_movie">${element}</li>
-                `);
-            });
+                    `);
+                    const movie = itemNode.querySelector('.cards__item_movies');
+                    item['movies'].forEach(element => {
+                        movie.insertAdjacentHTML('beforeend', `
+                            <li class="cards__item_movie">${element}</li>
+                        `);
+                    });
+                }
+            }
+            cardsContainer.appendChild(itemNode);
         });
     };
 
-    //вешаем событие на ресет, дальше по всплытию сработает submit
-    document.querySelector('.reset__btn').addEventListener('click', () => filterForm.reset());
+    const addListeners = () => {
+        //вешаем событие на ресет, дальше по всплытию сработает submit
+        document.querySelector('.reset__btn').addEventListener('click', () => filterForm.reset());
 
-    //Вешаем событие изменения выпадающего списка
-    filterForm.addEventListener('submit', async e => {
-        e.preventDefault();
-        const data = await getData(); //получаем данные с сервера каждый раз(на случай, если данные изменили за время последнего запроса(если бы они были нестатичны))
-        const filteredData = filterData(data); //фильтруем данные
-        cardsContainer.textContent = ''; //стираем все, что было до этого
-        if (filteredData.length === 0) {
-            alert("По данному фильтр-запросу ничего не найдено:(");
+        //Вешаем событие изменения выпадающего списка
+        filterForm.addEventListener('submit', async e => {
+            e.preventDefault();
+            const data = await getData(); //получаем данные с сервера каждый раз(на случай, если данные изменили за время последнего запроса(если бы они были нестатичны))
+            const filteredData = filterData(data); //фильтруем данные
+            cardsContainer.textContent = ''; //стираем все, что было до этого
+            if (filteredData.length === 0) {
+                alert("По данному фильтр-запросу ничего не найдено:(");
+            }
+            else
+                createCards(filteredData); //вставляем новые данные
+        });
+        //Возможность щелкать по фильмам в карте персанажа и переходить на них(если фильтр с фильмами был добавлен)
+        if (!!metaDataValues['movies']) {
+            cardsContainer.addEventListener('click', e => {
+                if (e.target.tagName === "LI") {
+                    metaDataValues['movies'].value = e.target.textContent;
+                    filterForm.dispatchEvent(new Event('submit'));
+                }
+            });
         }
-        else
-            createCards(filteredData); //вставляем новые данные
-    });
+    };
 
-    //Возможность щелкать по фильмам в карте персанажа и переходить на них
-    cardsContainer.addEventListener('click', e => {
-        if (e.target.tagName === "LI") {
-            moviesSelect.value = e.target.textContent;
-            filterForm.dispatchEvent(new Event('submit'));
-        }
-    });
-    filterForm.dispatchEvent(new Event('submit'));//сразу отображаем все фильмы
+    const init = async () => {
+        await createOptions(filterArray.reverse()); //в этот массив добавляются имена полей, по которым
+
+        addListeners();
+
+        filterForm.dispatchEvent(new Event('submit'));//сразу отображаем все фильмы
+    }
 });
