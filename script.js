@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-    const createOptions = async () => { //функция создания selectы со всеми фильмами/статусами/гендерами.
+    const createOptions = async (filters) => { //функция создания selectы со всеми фильмами/статусами/гендерами.
         // Создана на случай, если в json добавился бы новый фильм/статус/гендер(другое написание, неизвестный пол и тп)
         let optionsMovie = new Set(),
             optionsGender = new Set(),
@@ -71,29 +71,43 @@ document.addEventListener('DOMContentLoaded', async () => {
             "gender": genderSelect.value,
             "status": statusSelect.value
         }
-        const filter = (data, filterValue) => { //функция для фильтра данных по любому из фильтров
-            if (metaDataValues[filterValue] !== "All") { //если выбрано All - не меняем данные
-                data = data.reduce((newObj, item) => { //создаем новый объект из геров, которые попадают под текущий фильтр
-                    if (!!item[filterValue]) { //проверяем, что персонаж имеет данный фильтр(например, DareDavil не имеет фильмов)
-                        if (typeof (item[filterValue]) === "object") { //если массив - используем includes
-                            if (item[filterValue].includes(metaDataValues[filterValue]))//проверяем что поле персонажа подходит под выбор в select
-                                newObj.push(item);
+
+        const filter = data => {
+            const keys = Object.keys(metaDataValues); //названия фильтров
+            let flag = true;
+            let filterMetaValue, filterDataValue;
+            data = data.reduce((newData, item) => { //проходимся по всем элементам данных и создает массив с отфильтрованным персонажами
+                for (let i = 0; i < keys.length; i++) {//каждый элемент проверяем по фильтрам
+                    filterDataValue = item[keys[i]];
+                    filterMetaValue = metaDataValues[keys[i]];
+                    if (filterMetaValue !== "All") { //если значение фильтра ALL - пропускаем его
+                        if (!filterDataValue) {//если у персонажа нет нужного поля - он не попадает под фильтр
+                            flag = false;
+                            break;
                         }
-                        else //если не массив - просто проверяем значение
-                            if (!!item[filterValue] && item[filterValue] === metaDataValues[filterValue])
-                                newObj.push(item);
+                        if (Array.isArray(filterDataValue)) { //если значение - массив, используем includes
+                            if (!filterDataValue.includes(filterMetaValue)) {//проверяем что поле персонажа подходит под выбор в select
+                                flag = false;
+                                break; //если не подходит, по остальным фильтрам его не проверяем
+                            }
+                        }
+                        else { //если не массив - просто проверяем значение
+                            if (filterDataValue !== filterMetaValue) {
+                                flag = false;
+                                break;
+                            }
+                        }
                     }
-                    return newObj;
-                }, []);
-            }
-            return data;
-        }
-        //Фильтруем данные последовательно по каждому из фильтров.
-        //Можно было бы фильтровать одновременно по всем, составляя большое условие, но тогда было бы неудобно внедрять новые фильтры, мне кажется
-        let filteredData = data;
-        Object.keys(metaDataValues).forEach(item => {
-            filteredData = filter(filteredData, item);
-        }); //передаем в функцию текущий фильтр и текущие данные
+                }
+                if (flag) //если флаг === true, то персонаж прошел все фильтры
+                    newData.push(item); //тогда добавляем его в новый массив
+                flag = true;
+                return newData;
+            }, []);
+            return data; //возвращаем отфильтрованные данные
+        };
+
+        let filteredData = filter(data);//фильтруем данные по select-ам
 
         const filterFields = filterMeta(metaDataField); //получаем функцию-фильтр, которая "вычленяет" только нужные поля
         filteredData = filteredData.reduce((newObj, item) => { //создаем новый объект из геров, получая только нужные поля
@@ -126,6 +140,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     };
 
+    //вешаем событие на ресет, дальше по всплытию сработает submit
+    document.querySelector('.reset__btn').addEventListener('click', () => filterForm.reset());
 
     //Вешаем событие изменения выпадающего списка
     filterForm.addEventListener('submit', async e => {
@@ -139,6 +155,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         else
             createCards(filteredData); //вставляем новые данные
     });
+
     //Возможность щелкать по фильмам в карте персанажа и переходить на них
     cardsContainer.addEventListener('click', e => {
         if (e.target.tagName === "LI") {

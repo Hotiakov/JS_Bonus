@@ -48,7 +48,8 @@ body {
   border: 2px solid #fff;
   border-radius: 14px;
   margin-right: 30px; }
-.filter__btn {
+
+.btn {
   color: #000;
   padding: 10px 20px;
   margin-bottom: 30px;
