@@ -15,7 +15,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         popupFilter.style.display = 'none';
         popupData.style.display = 'block';
         const inputs = popupFilter.querySelectorAll('input');
-        console.log(inputs);
         inputs.forEach(item => {
             if (item.checked) {
                 filterArray.push(item.value);
@@ -36,7 +35,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             }
         });
-        console.log(metaDataField);
         init();
     });
 
